@@ -1,0 +1,13 @@
+*.dll
+*.exe
+*.o
+*.o.d
+
+nbproject/
+.nb-gradle/
+
+
+build/
+nbbuild/
+dist/
+nbdist/
