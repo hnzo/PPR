@@ -42,6 +42,7 @@ unsigned char out_buffer = BUFFER_SIZE;
  */
 int main(int argc, char** argv)
 {
+    printf("123");
     printf("Hello World!");
     return (EXIT_SUCCESS);
 }
