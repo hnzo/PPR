@@ -1,5 +1,6 @@
 *.dll
 *.exe
+*.exe.stackdump
 *.o
 *.o.d
 
@@ -7,7 +8,8 @@
 
 nbproject/
 .nb-gradle/
-
+*/html
+*/latex
 
 build/
 nbbuild/
