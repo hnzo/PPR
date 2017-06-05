@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define BUF_SIZE 4096
 
@@ -33,34 +34,32 @@ void write_bit(BIT c);
 void copy_chars(unsigned char in[], unsigned char out[]);
 void copy_bits(unsigned char in[], unsigned char out[]);
 
-unsigned char in_buffer[BUF_SIZE] = { "Hallo, das ist eine KI aus dem Jahr 2016. WILLKOMMEN" };
+unsigned char in_buffer[BUF_SIZE];
 unsigned char out_buffer[BUF_SIZE];
 unsigned char mask = 0x80;
+
 int in_buffer_pos = 0;
 int out_buffer_pos = 0;
-int bit_pos = 0;
+int bit_pos_in = 0;
+int bit_pos_out = 0;
 
 
 /*
  * 
  */
-int main(int argc, char** argv)
+int main()
 {
-    put_bit(in_buffer[0], ON, 2);
-    put_bit(in_buffer[0], ON, 0);
-  
-    /*
-    printf("H: %d", get_bit(in_buffer[1], 0));
-    printf("%d", get_bit(in_buffer[1], 1)); //1
-    printf("%d", get_bit(in_buffer[1], 2));
-    printf("%d", get_bit(in_buffer[1], 3));
-    printf("%d", get_bit(in_buffer[1], 4)); //1
-    printf("%d", get_bit(in_buffer[1], 5));
-    printf("%d", get_bit(in_buffer[1], 6));
-    printf("%d \n", get_bit(in_buffer[1], 7));
-    */
-    
-    
+    unsigned char in_a[] = { "Hallo, das ist eine KI aus dem Jahr 2016. WILLKOMMEN \0" };
+    unsigned char out_a[BUF_SIZE] = {0};
+       
+    copy_bits(in_a, out_a);
+   
+    printf("out-array-finish: %c \n", out_a[0]);
+    printf("out-array-finish: %c \n", out_a[1]);
+    printf("out-array-finish: %c \n", out_a[2]);
+    printf("out-array-finish: %c \n", out_a[3]);
+    printf("out-array-finish: %c \n", out_a[4]);
+       
     return (EXIT_SUCCESS);
 }
 
@@ -82,63 +81,97 @@ char put_bit(unsigned char c, BIT bit, int pos) {
     } else {
         c = c & ~(mask >> pos);
     }
-    //in_buffer[0] = c;
-    //printf("char: %c \n", c);
+
     return c;
 }
 
 BOOL has_next_char(void) {
-    BOOL erg;
-    if(in_buffer[in_buffer_pos] != 0) {
+    BOOL erg = FALSE;
+    if(in_buffer[in_buffer_pos] != '\0') {
+        
         erg = TRUE;
-    } else {
-        erg = FALSE;
-    }
+    } 
     
     return erg;
 }
 
 unsigned char read_char(void) {
-    unsigned char uc;
-    uc = in_buffer[in_buffer_pos];
-    in_buffer_pos++;
-    
-    return uc;
+
+    return in_buffer[in_buffer_pos];
 }
 
 void write_char(unsigned char c) {
-    while(out_buffer[out_buffer_pos] > 0) {
-        out_buffer_pos++;
-    }
+    
     out_buffer[out_buffer_pos] = c;
 }
 
 BOOL has_next_bit(void) {
     BOOL erg = FALSE;
-    unsigned char uc;
-    uc = read_char();
-    
-    for(int i = 0;i<=7;i++) {
-        if(get_bit(uc, i) == ON) {
-            erg = TRUE;
-        }
-    }
-    
+              
+        if(has_next_char()) {
+            erg = TRUE;            
+        }    
     return erg;
 }
 
 BIT read_bit(void) {
     
+    return get_bit(read_char(), bit_pos_in);    
 }
 
 void write_bit(BIT c) {
-    
+    out_buffer[out_buffer_pos] = put_bit(read_char(), c, bit_pos_out);    
 }
 
 void copy_chars(unsigned char in[], unsigned char out[]) {
+    in_buffer_pos = 0;
+    out_buffer_pos = 0;
+    bit_pos_in = 0;
+    bit_pos_out = 0;
     
+    
+    memcpy(in_buffer, in, BUF_SIZE);
+    
+    while(has_next_char()) {
+        unsigned char c = read_char();
+        write_char(c);
+        out_buffer_pos++;
+        in_buffer_pos++;
+        
+    }
+    
+    memcpy(out, out_buffer, BUF_SIZE);       
 }
 
+/**
+ * Hier wird das Bitweise kopieren realisiert. Es werden Zeichen aus dem 
+ * Eingabepuffer Bitweise gelesen und danach wieder Bitweise in den
+ * Ausgabepuffer geschrieben.
+ * @param in Eingangs-Array mit den zu kopierenden Daten
+ * @param out Das Ausgangs-Array für die geschriebenen Daten
+ */
 void copy_bits(unsigned char in[], unsigned char out[]) {
+    in_buffer_pos = 0;
+    out_buffer_pos = 0;
+    bit_pos_in = 0;
+    bit_pos_out = 0;
     
+    
+    memcpy(in_buffer, in, BUF_SIZE);    
+    
+    while(has_next_bit()) {
+        BIT c = read_bit();
+        write_bit(c);
+   
+        if((bit_pos_in <= 7) && (bit_pos_out <= 7)) {
+            bit_pos_in++;
+            bit_pos_out++; 
+        } else {
+            bit_pos_in = 0;
+            bit_pos_out = 0;
+            out_buffer_pos++;
+            in_buffer_pos++;
+        }
+    }
+    memcpy(out, out_buffer, BUF_SIZE);
 }
